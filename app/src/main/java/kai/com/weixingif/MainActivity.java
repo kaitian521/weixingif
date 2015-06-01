@@ -19,7 +19,11 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.i("MainActivity", GifSicleRequest.getGifInfo("/storage/sdcard0/gif", "jiangC.gif"));
+        String ret = GifSicleRequest.getGifInfo("/storage/sdcard0/gif", "jiangC.gif");
+        String[] rett = ret.split(";");
+        for (String str: rett) {
+            Log.i("MainActivity", str);
+        }
         setContentView(R.layout.activity_main);
     }
 
