@@ -76,7 +76,7 @@ int compressGif(string path, string name) {
 
 			//NOTICE: sometime we just exagerate the ratio, so we judge it by its size
 
-			int value_x = (int)(500.0 * ratio[0] / size);
+			int value_x = (int)(500.0 * (1 << 10) * ratio[0] / size);
 
 			int id = 0;
 			for (int i = 1; ratio[i] != 1; i++) {
