@@ -1,4 +1,5 @@
 #include <jni.h>
+#include <unistd.h>
 #include <string>
 #include <string.h>
 #include <stdio.h>
@@ -40,8 +41,11 @@ static int ratio[] = {
 };
 
 std::tuple<int, int, int, int, int> getGifInfo(string _path, string _name);
+int file_size(string file);
+bool execute(vector<string> &vs);
 
-int compressGif(string path, string name) {
+
+int compressGif(string path, string name, string &new_name, int &_size) {
 	LogInfo("path = %s, name = %s", path.c_str(), name.c_str());
 
 	auto tp = getGifInfo(path, name);
@@ -62,6 +66,8 @@ int compressGif(string path, string name) {
     //1. if size <= 500K, do not process
 	if (size < 500 * (1 << 10)) {
 		LogInfo("Lucky man, the original gif size is %d", size);
+		new_name = name;
+		_size = size;
 		return 1;
 	}
 
@@ -69,8 +75,17 @@ int compressGif(string path, string name) {
 	double scale = 1.0;
 	{
 		int xx = std::max(height, width);
-	    if (xx > 150) {
-		    scale = 130.0 / xx;
+	    if (xx > 130) {
+
+			//make a bigger compress for >= 1M
+			if (size >= 3000 * (1 << 10)) {
+				scale = 120.0 / xx;
+			} else if(size >= 1000 * (1 << 10)) {
+		    	scale = 125.0 / xx;
+			} else {
+				scale = 130.0 / xx;
+			}
+
 			scale = (double)((int)(scale * 100)) / (100);
 			LogInfo("By its height*width, the scale is %.2lf", scale);
 
@@ -96,13 +111,117 @@ int compressGif(string path, string name) {
 		}
 	}
 
+	string tmp = "0923" + name;
+	vector<string> command;
+	command.push_back("./a.out");
+	// command.push_back("-O2");
+	command.push_back(path + "/" + name);
+	//command.push_back("--scale");
+	//command.push_back(to_string(0.9));
+	command.push_back("--resize-width");
+	command.push_back(to_string(120));
+	command.push_back("--resize-height");
+	command.push_back(to_string(90));
+	command.push_back("-o");
+	command.push_back(path + "/" + tmp);
+	//command.push_back("/dev/null");
+
 	LogInfo("Finally, the scale is ultimately %.2lf", scale);
+	bool ret = execute(command);
+	if (ret) {
+		int new_size = file_size(path + "/" + tmp);
+		LogInfo("After a resize, size = %d, new_size = %d", size, new_size);
+		if (new_size >= size) {
+			LogError("Sorry that AFTER a resize, the image is larger...");
+			string ttt = path + "/" + tmp;
+			//unlink(ttt.c_str());
+		} else {
+			size = new_size;
+			name = tmp;
+			string ttt = path + "/" + name;
+			//unlink(ttt.c_str());
+		}
+
+	    if (size <= 500 * (1 << 10) ) {
+			LogInfo("Cong~, new size is %d", size);
+			new_name = name;
+			_size = size;
+			return 0;
+		}
+
+		_size = size;
+
+		if (images <= 4) {
+			LogInfo("What happened? the Gif images count is %d, can not remove one", images);
+			new_name = name;
+			return 0;
+		}
+
+		double lossRate = (1.0 * new_size - 500 * (1 << 10) ) / new_size;
+		if (lossRate >= 0.26) {
+			LogInfo("The Gif now is still so large, we will jusr remove 1/4 images at once more...");
+			lossRate = 0.25;
+		}
+
+		int removeCnt = lossRate * images;
+		int new_colors = 0;
+
+		if (colors >= 200 && size >= 600 * (1 << 10) ) {
+			LogInfo("Colors is a little more, size is a little big, so we can double it 0.5");
+			removeCnt = 1.08 * images * (0.92 * new_size - 500 * (1 << 10) ) / (new_size);
+			new_colors = colors / 2;
+		}
+
+		if (removeCnt == 0) removeCnt ++;
+
+		LogInfo("%d images will be deleted, color will be set %d, total images is %d", removeCnt, (new_colors == 0)? colors: new_colors, images);
+
+	}
+	else {
+		return -1;
+	}
 	return 0;
+}
+
+bool execute(vector<string> &vs) {
+	char **argv = new char*[vs.size() + 1];
+	if (argv == NULL) {
+		LogError("Failed in creating command, maybe lack of memory");
+		return false;
+	}
+	for (int i = 0; i < vs.size(); i++) {
+		argv[i] = new char[vs[i].size() + 1];
+		if (argv[i] == NULL) {
+			LogError("Failed in creating command %s, maybe lack of memory", vs[i].c_str());
+			return false;
+		}
+
+		strcpy(argv[i], vs[i].c_str());
+	}
+
+	argv[vs.size()] = NULL;
+
+	for (int i = 0; i < vs.size(); i++) {
+		LogInfo("Command #%d: %s", i, argv[i]);
+	}
+
+	LogInfo("*******************************************");
+	_main(vs.size(), argv);
+
+	for (int i = 0; i < vs.size(); i++) {
+		if (argv[i]) {
+			delete [] argv[i];
+		}
+	}
+	delete [] argv;
+
+	return true;
 }
 
 
 std::tuple<int, int, int, int, int> getGifInfo(string _path, string _name) {
 
+      return std::make_tuple(159, 394, 222, 256, 5232858);
 	  int command_cnt = 5;
 	  string str = _path;
 	  str += "/";
@@ -184,16 +303,21 @@ std::tuple<int, int, int, int, int> getGifInfo(string _path, string _name) {
 		  }
 	  }
 
-	  FILE *fp = fopen(file.c_str(), "r");
-	  if (fp) {
-		  fseek(fp, 0, SEEK_END);
-		  size = ftell(fp);
-	      fclose(fp);
-	  }
+	  size = file_size(file);
 
       return std::make_tuple(images, logic_screen_height, logic_screen_width, colors, size);
 }
 
+int file_size(string file) {
+	FILE *fp = fopen(file.c_str(), "r");
+	int size = -1;
+	if (fp) {
+		fseek(fp, 0, SEEK_END);
+		size = ftell(fp);
+		fclose(fp);
+	}
+	return size;
+}
 
 JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGifInfo
   (JNIEnv *env, jclass, jstring path, jstring name) {
@@ -218,6 +342,15 @@ JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGif
       */
 	  LogInfo("begin to compressGif");
       jstring result = env->NewStringUTF(ret.c_str());
-	  compressGif(_path, _name);
+	  string new_file;
+	  int size = 0;
+	  int retcode = compressGif(_path, _name, new_file, size);
+      if (retcode == 0) {
+		  LogInfo("sucess in compressing gif, size = %d", size);
+	  }
+	  else {
+		  LogError("Fail in compressing gif, size = %d", size);
+	  }
+
 	  return result;
 }

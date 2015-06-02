@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 import kai.com.weixingif.gifsicle.GifSicleRequest;
 
@@ -15,16 +17,28 @@ public class MainActivity extends ActionBarActivity {
         System.loadLibrary("GifProcess");
     }
 
+    Button button;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        String ret = GifSicleRequest.getGifInfo("/storage/sdcard0/gif", "jiangC.gif");
+        button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                send();
+            }
+        });
+    }
+
+    private void send() {
+        String ret = GifSicleRequest.getGifInfo("/storage/sdcard0/gif", "5M.gif");
         String[] rett = ret.split(";");
         for (String str: rett) {
             Log.i("MainActivity", str);
         }
-        setContentView(R.layout.activity_main);
     }
 
 
