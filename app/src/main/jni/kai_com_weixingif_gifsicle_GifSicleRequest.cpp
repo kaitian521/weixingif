@@ -254,7 +254,7 @@ bool execute(vector<string> &vs) {
 
 std::tuple<int, int, int, int, int> getGifInfo(string _path, string _name) {
 
-      return std::make_tuple(159, 394, 222, 256, 5232858);
+      // return std::make_tuple(159, 394, 222, 256, 5232858);
 	  int command_cnt = 5;
 	  string str = _path;
 	  str += "/";
