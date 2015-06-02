@@ -114,16 +114,19 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 	string tmp = "0923" + name;
 	vector<string> command;
 	command.push_back("./a.out");
-	// command.push_back("-O2");
-	command.push_back(path + "/" + name);
-	//command.push_back("--scale");
-	//command.push_back(to_string(0.9));
-	command.push_back("--resize-width");
-	command.push_back(to_string(120));
-	command.push_back("--resize-height");
-	command.push_back(to_string(90));
 	command.push_back("-o");
 	command.push_back(path + "/" + tmp);
+	command.push_back(path + "/" + name);
+	command.push_back("--scale");
+	command.push_back(to_string(0.3));
+	command.push_back("--resize-method");
+	command.push_back("sample");
+	/*command.push_back("--resize-width");
+	command.push_back(to_string(120));
+	command.push_back("--resize-height");
+	command.push_back(to_string(90));*/
+	//command.push_back("-o");
+	//command.push_back(path + "/" + tmp);
 	//command.push_back("/dev/null");
 
 	LogInfo("Finally, the scale is ultimately %.2lf", scale);
