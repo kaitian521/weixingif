@@ -165,7 +165,8 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 
 		if (colors >= 180 && size >= 600 * (1 << 10) ) {
 			LogInfo("Colors is a little more, size is a little big, so we can double it 0.5");
-			removeCnt = 1.08 * images * (0.95 * new_size - 500 * (1 << 10) ) / (new_size);
+			// removeCnt = 1.08 * images * (/*0.95*/ 1.0 * new_size - 500 * (1 << 10) ) / (new_size);
+			removeCnt = 1.0 * images * (1.0 * new_size - 500 * (1 << 10) ) / (new_size);
 			new_colors = colors / 2;
 		}
 
@@ -180,7 +181,7 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 		command.push_back(path + "/" + name);
 		command.push_back("--unoptimize");
 		command.push_back("-O2");
-		if (new_colors > 0) {
+		if (new_colors > 0 && false) {
 			command.push_back("--colors");
 			command.push_back(to_string(new_colors));
 		}
