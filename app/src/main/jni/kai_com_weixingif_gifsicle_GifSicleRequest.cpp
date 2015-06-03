@@ -60,6 +60,8 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 	//0. should never be less than zero
 	if (images <= 0 || height <= 0 || width <= 0 || colors <= 0 || size <= 0) {
 		LogError("You make sure that a Gif is uploaded!");
+		new_name = name;
+		_size = size;
 		return -1;
 	}
 
@@ -75,15 +77,15 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 	double scale = 1.0;
 	{
 		int xx = std::max(height, width);
-	    if (xx > 130) {
+	    if (xx > 135) {
 
-			//make a bigger compress for >= 1M
+			//make a bigger compress for >= 3M
 			if (size >= 3000 * (1 << 10)) {
-				scale = 120.0 / xx;
+				scale = 125.0 / xx;
 			} else if(size >= 1000 * (1 << 10)) {
 		    	scale = 125.0 / xx;
 			} else {
-				scale = 130.0 / xx;
+				scale = 135.0 / xx;
 			}
 
 			scale = (double)((int)(scale * 100)) / (100);
@@ -111,12 +113,12 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 		}
 	}
 
-	string tmp = "0923" + name;
+	string tmp_name = "weigif_" + name;
 	vector<string> command;
 	command.push_back("./a.out");
 	command.push_back("-O2");
 	command.push_back("-o");
-	command.push_back(path + "/" + tmp);
+	command.push_back(path + "/" + tmp_name);
 	command.push_back(path + "/" + name);
 	command.push_back("--scale");
 	command.push_back(to_string(scale));
@@ -126,15 +128,15 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 	LogInfo("Finally, the scale is ultimately %.2lf", scale);
 	bool ret = execute(command);
 	if (ret) {
-		int new_size = file_size(path + "/" + tmp);
-		LogInfo("After a resize, size = %d, new_size = %d", size, new_size);
+		int new_size = file_size(path + "/" + tmp_name);
+		LogInfo("After a resize, original size = %d, new_size = %d", size, new_size);
 		if (new_size >= size) {
 			LogError("Sorry that AFTER a resize, the image is larger...");
-			string ttt = path + "/" + tmp;
-			//unlink(ttt.c_str());
+			string ttt = path + "/" + tmp_name;
+			unlink(ttt.c_str());
 		} else {
 			size = new_size;
-			name = tmp;
+			name = tmp_name;
 			string ttt = path + "/" + name;
 			//unlink(ttt.c_str());
 		}
@@ -165,33 +167,34 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 
 		if (colors >= 180 && size >= 600 * (1 << 10) ) {
 			LogInfo("Colors is a little more, size is a little big, so we can double it 0.5");
-			// removeCnt = 1.08 * images * (/*0.95*/ 1.0 * new_size - 500 * (1 << 10) ) / (new_size);
-			removeCnt = 1.0 * images * (1.0 * new_size - 500 * (1 << 10) ) / (new_size);
 			new_colors = colors / 2;
+			if (_size >= 600 * (1 << 10)) removeCnt = 0.95 * removeCnt;
 		}
 
 		if (removeCnt == 0) removeCnt ++;
 
 		int _removed = 0;
 		command.clear();
-		tmp = "0924" + name;
+		string tmp_name2 = "weigif2_" + name;
 		command.push_back("./a.out");
 		command.push_back("-o");
-		command.push_back(path + "/" + tmp);
+		command.push_back(path + "/" + tmp_name2);
 		command.push_back(path + "/" + name);
 		command.push_back("--unoptimize");
 		command.push_back("-O2");
-		if (new_colors > 0 && false) {
+		if (new_colors > 0) {
 			command.push_back("--colors");
 			command.push_back(to_string(new_colors));
+			removeCnt = 0.94 * removeCnt;
 		}
 
+		command.push_back("--delete");
+
 		for (int i = 0; i < images; i++) {
-			if (_removed < removeCnt && (i & 1)) {
+			if (_removed < removeCnt && !(i & 1)) {
+				command.push_back("#" + to_string(i) + "");
 				_removed ++;
-				continue;
 			}
-			command.push_back("\"#" + to_string(i) + "\"");
 		}
 
 		LogInfo("%d images will be deleted, color will be set %d, total images is %d", removeCnt, (new_colors == 0)? colors: new_colors, images);
@@ -199,18 +202,28 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 		bool ret = execute(command);
 
 		if(!ret) {
-			return 0;
-		}
-        int final_size = file_size(path + "/" + tmp);
-		if (final_size >= size) {
-			_size = size;
-			return 0;
+			string tt = path + "/" + tmp_name2;
+			unlink(tt.c_str());
+			new_name = tmp_name;
+			return -1;
 		}
 
+        int final_size = file_size(path + "/" + tmp_name2);
+		if (final_size >= size) {
+			string tt = path + "/" + tmp_name2;
+			unlink(tt.c_str());
+			new_name = tmp_name;
+			return 0;
+		}
+		LogInfo("the final gif size is %d", final_size);
+		string tt = path + "/" + tmp_name;
+		unlink(tt.c_str());
 		_size = final_size;
-		new_name = tmp;
+		new_name = tmp_name2;
 	}
 	else {
+		_size = size;
+		new_name = name;
 		return -1;
 	}
 	return 0;
@@ -234,9 +247,12 @@ bool execute(vector<string> &vs) {
 
 	argv[vs.size()] = NULL;
 
+	string command;
 	for (int i = 0; i < vs.size(); i++) {
-		LogInfo("Command #%d: %s", i, argv[i]);
+		command += vs[i] + " ";
+		//LogInfo("Command #%d: %s", i, argv[i]);
 	}
+	LogInfo("execute command:  %s\n", command.c_str());
 
 	LogInfo("*******************************************");
 	_main(vs.size(), argv);
@@ -352,6 +368,16 @@ int file_size(string file) {
 	return size;
 }
 
+bool getScaleFrame(string path, string name, string jpg_name) {
+	vector<string>command;
+	command.push_back("./a.out");
+	command.push_back(path + "/" + name);
+	command.push_back("#0");
+	command.push_back("-o");
+	command.push_back(path + "/" + jpg_name);
+	return execute(command);
+}
+
 JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGifInfo
   (JNIEnv *env, jclass, jstring path, jstring name) {
 
@@ -378,12 +404,25 @@ JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGif
 	  string new_file;
 	  int size = 0;
 	  int retcode = compressGif(_path, _name, new_file, size);
-      if (retcode == 0) {
+      if (retcode >= 0) {
 		  LogInfo("sucess in compressing gif, size = %d", size);
 	  }
 	  else {
 		  LogError("Fail in compressing gif, size = %d", size);
 	  }
 
-	  return result;
+
+	auto tp = getGifInfo(_path, new_file);
+	int images = -1;
+	int height = -1;
+	int width  = -1;
+	int colors = -1;
+	    size   = -1;
+
+    std::tie(images, height, width, colors, size) = tp;
+    LogInfo("final images = %d, height = %d, width = %d, colors = %d, size = %d", images, height, width, colors, size);
+
+	string jpg_frame = "fist_" + new_file + ".jpg";
+    retcode = getScaleFrame(_path, new_file, jpg_frame);
+	return result;
 }
