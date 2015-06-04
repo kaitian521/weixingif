@@ -25,6 +25,7 @@ LOCAL_SRC_FILES += \
 LOCAL_SRC_FILES +=\
 	$(LOCAL_PATH)/kai_com_weixingif_gifsicle_GifSicleRequest.cpp \
 	$(LOCAL_PATH)/tools.cpp \
+	$(LOCAL_PATH)/gifsicle_wrapper.cpp \
 	$(LOCAL_PATH)/cloudatlas/base/logger.cpp
 
 LOCAL_C_INCLUDES := \
