@@ -43,9 +43,59 @@ std::tuple<int, int, int, int, int> getGifInfo(string _path, string _name);
 int file_size(string file);
 bool execute(vector<string> &vs);
 
+bool resize(string path, string name, string new_name, double scale) {
 
-int compressGif(string path, string name, string &new_name, int &_size) {
-	string origin_name = name;
+	vector<string> command;
+	command.push_back("./a.out");
+	command.push_back("-O2");
+	command.push_back("-o");
+	command.push_back(path + "/" + new_name);
+	command.push_back(path + "/" + name);
+	command.push_back("--scale");
+	command.push_back(to_string(scale));
+	command.push_back("--resize-method");
+	command.push_back("sample");
+	LogInfo("Finally, the scale is ultimately %.2lf", scale);
+	return execute(command);
+}
+
+bool reduce_color(string path, string name, string new_name) {
+
+    vector<string> command;
+	command.push_back("./a.out");
+	command.push_back("--unoptimize");
+	command.push_back("-O2");
+	command.push_back("-o");
+	command.push_back(path + "/" + new_name);
+	command.push_back(path + "/" + name);
+	command.push_back("--colors");
+	int color = 64;
+	command.push_back(to_string(color));
+	LogInfo("I will reduce the color to 64 BITS");
+	return execute(command);
+}
+
+bool remove_frame(string path, string name, string new_name, int removeCnt, int images) {
+	int _removed = 0;
+    vector<string> command;
+	command.push_back("./a.out");
+	command.push_back("-o");
+	command.push_back(path + "/" + new_name);
+	command.push_back(path + "/" + name);
+	command.push_back("--unoptimize");
+	command.push_back("-O2");
+	command.push_back("--delete");
+
+	for (int i = 0; i < images; i++) {
+		if (_removed < removeCnt && !(i & 1)) {
+			command.push_back("#" + to_string(i));
+			_removed ++;
+		}
+	}
+	return execute(command);
+}
+
+int compressGif(string path, string name, string &new_name, int &new_size) {
 	LogInfo("path = %s, name = %s", path.c_str(), name.c_str());
 
 	auto tp = getGifInfo(path, name);
@@ -61,7 +111,7 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 	if (images <= 0 || height <= 0 || width <= 0 || colors <= 0 || size <= 0) {
 		LogError("You make sure that a Gif is uploaded!");
 		new_name = name;
-		_size = size;
+		new_size = size;
 		return -1;
 	}
 
@@ -69,7 +119,7 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 	if (size < 500 * (1 << 10)) {
 		LogInfo("Lucky man, the original gif size is %d", size);
 		new_name = name;
-		_size = size;
+		new_size = size;
 		return 1;
 	}
 
@@ -80,12 +130,12 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 	    if (xx > 135) {
 
 			//make a bigger compress for >= 3M
-			if (size >= 3000 * (1 << 10)) {
-				scale = 125.0 / xx;
-			} else if(size >= 1000 * (1 << 10)) {
-		    	scale = 125.0 / xx;
-			} else {
+			if (size >= 2800 * (1 << 10)) {
 				scale = 135.0 / xx;
+			} else if(size >= 1000 * (1 << 10)) {
+		    	scale = 150.0 / xx;
+			} else {
+				scale = 150.0 / xx;
 			}
 
 			scale = (double)((int)(scale * 100)) / (100);
@@ -120,45 +170,45 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 		}
 	}
 
-	string tmp_name = "weigif_" + origin_name;
-	vector<string> command;
-	command.push_back("./a.out");
-	command.push_back("-O2");
-	command.push_back("-o");
-	command.push_back(path + "/" + tmp_name);
-	command.push_back(path + "/" + name);
-	command.push_back("--scale");
-	command.push_back(to_string(scale));
-	command.push_back("--resize-method");
-	command.push_back("sample");
-
-	LogInfo("Finally, the scale is ultimately %.2lf", scale);
-	bool ret = execute(command);
+	string tmp_name = "weigif_" + name;
+    bool ret = resize(path, name, tmp_name, scale);
 	if (ret) {
-		int new_size = file_size(path + "/" + tmp_name);
-		LogInfo("After a resize, original size = %d, new_size = %d", size, new_size);
-		if (new_size >= size) {
+		int tmp_size = file_size(path + "/" + tmp_name);
+		LogInfo("After a resize, original size = %d, new_size = %d", size, tmp_size);
+		if (tmp_size >= size) {
 			LogError("Sorry that AFTER a resize, the image is larger...");
 			string ttt = path + "/" + tmp_name;
 			unlink(ttt.c_str());
+			new_size = size;
+			new_name = name;
 		} else {
-			size = new_size;
-			name = tmp_name;
+			new_size = tmp_size;
+			new_name = tmp_name;
 		}
 
-	    if (size <= 500 * (1 << 10) ) {
-			LogInfo("Cong~, new size is %d", size);
-			new_name = name;
-			_size = size;
+	    if (new_size <= 500 * (1 << 10) ) {
+			LogInfo("Cong~, new size is %d", new_size);
 			return 0;
 		}
-
-		_size = size;
 
 		if (images <= 4) {
 			LogInfo("What happened? the Gif images count is %d, can not remove one", images);
-			new_name = name;
 			return 0;
+		}
+
+        // we will reduce the color bits to 64
+		if(colors > 64) {
+		    string reduced_color_name = "color_" + name;
+        	bool ret2 = reduce_color(path, new_name, reduced_color_name);
+            if (ret2) {
+                int color_size = file_size(path + "/" + reduced_color_name);
+                LogInfo("After reduce color, the file size becomes %d", color_size);
+                new_name = reduced_color_name;
+                new_size = color_size;
+                if (color_size <= 500 * (1 << 10)) {
+                    return 0;
+                }
+            }
 		}
 
 		double lossRate = (1.0 * new_size - 500 * (1 << 10) ) / new_size;
@@ -168,48 +218,16 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 		}
 
 		int removeCnt = lossRate * images;
-		int new_colors = 0;
-
-		if (colors >= 180 && size >= 520 * (1 << 10) ) {
-			LogInfo("Colors is a little more, size is a little big, so we can double it 0.5");
-			new_colors = colors / 2;
-			if (_size >= 600 * (1 << 10)) removeCnt = 0.95 * removeCnt;
-		}
-
 		if (removeCnt == 0) removeCnt ++;
+		if (images >= 100) removeCnt += 2;
 
-		int _removed = 0;
-		command.clear();
-		string tmp_name2 = "weigif2_" + origin_name;
-		command.push_back("./a.out");
-		command.push_back("-o");
-		command.push_back(path + "/" + tmp_name2);
-		command.push_back(path + "/" + name);
-		command.push_back("--unoptimize");
-		command.push_back("-O2");
-		if (new_colors > 0) {
-			command.push_back("--colors");
-			command.push_back(to_string(new_colors));
-			removeCnt = 0.94 * removeCnt;
-		}
-
-		command.push_back("--delete");
-
-		for (int i = 0; i < images; i++) {
-			if (_removed < removeCnt && !(i & 1)) {
-				command.push_back("#" + to_string(i) + "");
-				_removed ++;
-			}
-		}
-
-		LogInfo("%d images will be deleted, color will be set %d, total images is %d", removeCnt, (new_colors == 0)? colors: new_colors, images);
-
-		bool ret = execute(command);
+		LogInfo("%d images will be deleted", removeCnt);
+        string tmp_name2 = "weigif2_" + name;
+		bool ret = remove_frame(path, new_name, tmp_name2, removeCnt, images);
 
 		if(!ret) {
 			string tt = path + "/" + tmp_name2;
 			unlink(tt.c_str());
-			new_name = tmp_name;
 			return -1;
 		}
 
@@ -217,17 +235,17 @@ int compressGif(string path, string name, string &new_name, int &_size) {
 		if (final_size >= size) {
 			string tt = path + "/" + tmp_name2;
 			unlink(tt.c_str());
-			new_name = tmp_name;
 			return 0;
 		}
+
 		LogInfo("the final gif size is %d", final_size);
-		string tt = path + "/" + tmp_name;
+		string tt = path + "/" + new_name;
 		unlink(tt.c_str());
-		_size = final_size;
+		new_size = final_size;
 		new_name = tmp_name2;
 	}
 	else {
-		_size = size;
+		new_size = size;
 		new_name = name;
 		return -1;
 	}

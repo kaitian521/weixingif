@@ -27,7 +27,7 @@ public class MainActivity extends ActionBarActivity {
         System.loadLibrary("GifProcess");
     }
 
-    Button button;
+    Button button, button2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +52,18 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        button2 = (Button) findViewById(R.id.button2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                Intent intent = new Intent();
+//                intent.setAction("android.intent.action.XXXXXXXX");
+//                intent.addCategory("FUCKU");
+//                startActivity(intent);
+                send();
+            }
+        });
+
         final GifMovieView gif1 = (GifMovieView) findViewById(R.id.gif1);
 
         gif1.setMovie(Movie.decodeFile(path + "/" + name));
@@ -60,7 +72,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void send() {
-        String ret = GifSicleRequest.getGifInfo("/storage/sdcard0/gif", "5M.gif");
+        String ret = GifSicleRequest.getGifInfo("/storage/sdcard0/gif", "code.gif");
         String[] rett = ret.split(";");
         for (String str: rett) {
             Log.i("MainActivity", str);
