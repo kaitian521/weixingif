@@ -26,7 +26,6 @@ JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGif
 	  char *_name = (char*)env->GetStringUTFChars(name, NULL);
 
 	  LogInfo("begin to compressGif");
-      jstring result = env->NewStringUTF(ret.c_str());
 	  string new_file;
 	  int size = 0;
 	  int retcode = compressGif(_path, _name, new_file, size);
@@ -49,6 +48,7 @@ JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGif
     LogInfo("final images = %d, height = %d, width = %d, colors = %d, size = %d", images, height, width, colors, size);
 
 	string jpg_frame = new_file + ".jpg";
+    jstring result = env->NewStringUTF(new_file.c_str());
     retcode = getScaleFrame(_path, new_file, jpg_frame);
 
 	return result;
