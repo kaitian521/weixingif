@@ -48,6 +48,7 @@ JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGif
     LogInfo("final images = %d, height = %d, width = %d, colors = %d, size = %d", images, height, width, colors, size);
 
 	string jpg_frame = new_file + ".jpg";
+	LogInfo("In the END, the new file is %s", new_file.c_str());
     jstring result = env->NewStringUTF(new_file.c_str());
     retcode = getScaleFrame(_path, new_file, jpg_frame);
 
