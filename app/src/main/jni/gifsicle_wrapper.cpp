@@ -59,7 +59,7 @@ bool resize(string path, string name, string new_name, double scale) {
 	return execute(command);
 }
 
-bool reduce_color(string path, string name, string new_name) {
+bool reduce_color(string path, string name, string new_name, int color) {
 
     vector<string> command;
 	command.push_back("./a.out");
@@ -69,9 +69,9 @@ bool reduce_color(string path, string name, string new_name) {
 	command.push_back(path + "/" + new_name);
 	command.push_back(path + "/" + name);
 	command.push_back("--colors");
-	int color = 64;
-	command.push_back(to_string(color));
-	LogInfo("I will reduce the color to 64 BITS");
+	int new_color = std::max(color >> 1, 100);
+	command.push_back(to_string(new_color));
+	LogInfo("I will reduce the color to %d BITS", new_color);
 	return execute(command);
 }
 
@@ -197,17 +197,19 @@ int compressGif(string path, string name, string &new_name, int &new_size) {
 		}
 
         // we will reduce the color bits to 64
-		if(colors > 64) {
+		if(colors > 100) {
 		    string reduced_color_name = "color_" + name;
-        	bool ret2 = reduce_color(path, new_name, reduced_color_name);
+        	bool ret2 = reduce_color(path, new_name, reduced_color_name, colors);
             if (ret2) {
                 int color_size = file_size(path + "/" + reduced_color_name);
-                LogInfo("After reduce color, the file size becomes %d", color_size);
-                new_name = reduced_color_name;
-                new_size = color_size;
-                if (color_size <= 500 * (1 << 10)) {
-                    return 0;
-                }
+				if (color_size < new_size) {
+                	LogInfo("After reduce color, the file size becomes %d", color_size);
+                	new_name = reduced_color_name;
+                	new_size = color_size;
+                	if (color_size <= 500 * (1 << 10)) {
+                    	return 0;
+                	}
+				}
             }
 		}
 
