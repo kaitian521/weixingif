@@ -75,6 +75,19 @@ bool reduce_color(string path, string name, string new_name, int color) {
 	return execute(command);
 }
 
+bool justO2(string path, string name, string new_name) {
+
+    vector<string> command;
+	command.push_back("./a.out");
+	command.push_back("--unoptimize");
+	command.push_back("-O2");
+	command.push_back("-o");
+	command.push_back(path + "/" + new_name);
+	command.push_back(path + "/" + name);
+	LogInfo("I will just make -O2 to gif incase weixin mohu");
+	return execute(command);
+}
+
 bool remove_frame(string path, string name, string new_name, int removeCnt, int images) {
 	int _removed = 0;
     vector<string> command;
@@ -118,8 +131,10 @@ int compressGif(string path, string name, string &new_name, int &new_size) {
     //1. if size <= 500K, do not process
 	if (size < 500 * (1 << 10)) {
 		LogInfo("Lucky man, the original gif size is %d", size);
-		new_name = name;
-		new_size = size;
+		string tmp_name = "O2_" + name;
+		bool jj = justO2(path, name, tmp_name);
+		new_name = tmp_name;
+		new_size = file_size(path + "/" + new_name);
 		return 1;
 	}
 
@@ -127,15 +142,15 @@ int compressGif(string path, string name, string &new_name, int &new_size) {
 	double scale = 1.0;
 	{
 		int xx = std::max(height, width);
-	    if (xx > 135) {
+	    if (xx > 160) {
 
 			//make a bigger compress for >= 3M
 			if (size >= 2800 * (1 << 10)) {
 				scale = 135.0 / xx;
 			} else if(size >= 1000 * (1 << 10)) {
-		    	scale = 150.0 / xx;
+		    	scale = 160.0 / xx;
 			} else {
-				scale = 150.0 / xx;
+				scale = 160.0 / xx;
 			}
 
 			scale = (double)((int)(scale * 100)) / (100);
@@ -214,9 +229,9 @@ int compressGif(string path, string name, string &new_name, int &new_size) {
 		}
 
 		double lossRate = (1.0 * new_size - 500 * (1 << 10) ) / new_size;
-		if (lossRate >= 0.26) {
+		if (lossRate >= 0.32) {
 			LogInfo("The Gif now is still so large, we will jusr remove 1/4 images at once more...");
-			lossRate = 0.25;
+			lossRate = 0.3;
 		}
 
 		int removeCnt = lossRate * images;
