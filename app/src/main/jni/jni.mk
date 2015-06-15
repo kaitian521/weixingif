@@ -6,6 +6,8 @@ LOCAL_ARM_MODE := arm
 LOCAL_MODULE := libGifProcess
 LOCAL_MODULE_TAGS := optional
 LOCAL_CPP_EXTENSION := .cc .cpp
+#MAGIC_PATH := $(LOCAL_PATH)/ImageMagick-6.7.3-0/Magick++
+#MAGIC_WAND := $(LOCAL_PATH)/ImageMagick-6.7.3-0/wand
 
 LOCAL_SRC_FILES += \
     $(LOCAL_PATH)/giflossy/src/fmalloc.c \
@@ -21,6 +23,25 @@ LOCAL_SRC_FILES += \
     $(LOCAL_PATH)/giflossy/src/strerror.c \
     $(LOCAL_PATH)/giflossy/src/gifsicle.c \
     $(LOCAL_PATH)/giflossy/src/clp.c
+
+#LOCAL_SRC_FILES += \
+#	$(MAGIC_PATH)/lib/Functions.cpp \
+#	$(MAGIC_PATH)/lib/Drawable.cpp	\
+#	$(MAGIC_PATH)/lib/Blob.cpp \
+#	$(MAGIC_PATH)/lib/Image.cpp \
+#	$(MAGIC_PATH)/lib/Thread.cpp \
+#	$(MAGIC_PATH)/lib/Pixels.cpp \
+##	$(MAGIC_PATH)/lib/BlobRef.cpp \
+#	$(MAGIC_PATH)/lib/TypeMetric.cpp \
+#	$(MAGIC_PATH)/lib/STL.cpp \
+#	$(MAGIC_PATH)/lib/ImageRef.cpp \
+#	$(MAGIC_PATH)/lib/Exception.cpp \
+#	$(MAGIC_PATH)/lib/Montage.cpp \
+#	$(MAGIC_PATH)/lib/Color.cpp \
+#	$(MAGIC_PATH)/lib/CoderInfo.cpp \
+#	$(MAGIC_PATH)/lib/Geometry.cpp \
+#	$(MAGIC_PATH)/lib/Options.cpp
+
 
 LOCAL_SRC_FILES +=\
 	$(LOCAL_PATH)/kai_com_weixingif_gifsicle_GifSicleRequest.cpp \
@@ -39,7 +60,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/giflossy/include/lsdfgif
 
 LOCAL_LDLIBS+= -L$(SYSROOT)/usr/lib -llog -lz -lm
-#LOCAL_LDLIBS += $(LOCAL_PATH)/libffmpeg.so
+# LOCAL_LDLIBS += $(LOCAL_PATH)/libimagemagick.so
 #LOCAL_SHARED_LIBRARIES += ABC
 
 ifndef NDK_ROOT

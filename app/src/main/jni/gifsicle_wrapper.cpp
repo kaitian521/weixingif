@@ -69,7 +69,7 @@ bool reduce_color(string path, string name, string new_name, int color) {
 	command.push_back(path + "/" + new_name);
 	command.push_back(path + "/" + name);
 	command.push_back("--colors");
-	int new_color = std::max(color >> 1, 100);
+	int new_color = std::max(color >> 1, 128);
 	command.push_back(to_string(new_color));
 	LogInfo("I will reduce the color to %d BITS", new_color);
 	return execute(command);
@@ -146,7 +146,7 @@ int compressGif(string path, string name, string &new_name, int &new_size) {
 
 			//make a bigger compress for >= 3M
 			if (size >= 2800 * (1 << 10)) {
-				scale = 135.0 / xx;
+				scale = 140.0 / xx;
 			} else if(size >= 1000 * (1 << 10)) {
 		    	scale = 160.0 / xx;
 			} else {
@@ -191,7 +191,7 @@ int compressGif(string path, string name, string &new_name, int &new_size) {
 		int tmp_size = file_size(path + "/" + tmp_name);
 		LogInfo("After a resize, original size = %d, new_size = %d", size, tmp_size);
 		if (tmp_size >= size) {
-			LogError("Sorry that AFTER a resize, the image is larger...");
+			LogError("Sorry for that AFTER a resize, the image is larger...");
 			string ttt = path + "/" + tmp_name;
 			unlink(ttt.c_str());
 			new_size = size;
@@ -229,9 +229,9 @@ int compressGif(string path, string name, string &new_name, int &new_size) {
 		}
 
 		double lossRate = (1.0 * new_size - 500 * (1 << 10) ) / new_size;
-		if (lossRate >= 0.32) {
+		if (lossRate >= 0.4) {
 			LogInfo("The Gif now is still so large, we will jusr remove 1/4 images at once more...");
-			lossRate = 0.3;
+			lossRate = 0.35;
 		}
 
 		int removeCnt = lossRate * images;
