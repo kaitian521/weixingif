@@ -63,6 +63,7 @@ LOCAL_LDLIBS+= -L$(SYSROOT)/usr/lib -llog -lz -lm
 # LOCAL_LDLIBS += $(LOCAL_PATH)/libimagemagick.so
 #LOCAL_SHARED_LIBRARIES += ABC
 
+APP_CPPFLAGS := -frtti -DCC_ENABLE_CHIPMUNK_INTEGRATION=1 -DCOCOS2D_DEBUG=1 -std=gnu++11 -DDEBUG=1
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
 ifndef NDK_ROOT
 include external/stlport/libstlport.mk

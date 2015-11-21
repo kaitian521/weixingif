@@ -54,7 +54,7 @@
  /mnt/data1/weixingif/app/src/main/jni/gifsicle_wrapper.h \
  /mnt/data1/weixingif/app/src/main/jni/giflossy/src/gifsicle.h \
  /mnt/data1/weixingif/app/src/main/jni/giflossy/include/lcdfgif/gif.h \
- /mnt/data1/weixingif/app/src/main/jni/giflossy/include/lcdf/inttypes.h \
+ /mnt/data1/android-ndk-r10e/platforms/android-9/arch-arm/usr/include/inttypes.h \
  /mnt/data1/weixingif/app/src/main/jni/giflossy/include/lcdf/clp.h \
  /mnt/data1/weixingif/app/src/main/jni/cloudatlas/base/logger.h \
  /mnt/data1/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/condition_variable \
@@ -173,7 +173,7 @@
 
 /mnt/data1/weixingif/app/src/main/jni/giflossy/include/lcdfgif/gif.h:
 
-/mnt/data1/weixingif/app/src/main/jni/giflossy/include/lcdf/inttypes.h:
+/mnt/data1/android-ndk-r10e/platforms/android-9/arch-arm/usr/include/inttypes.h:
 
 /mnt/data1/weixingif/app/src/main/jni/giflossy/include/lcdf/clp.h:
 

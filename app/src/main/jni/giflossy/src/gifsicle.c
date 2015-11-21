@@ -1329,6 +1329,7 @@ copy_crop(Gt_Crop *oc)
   return nc;
 }
 
+static void clear();
 
 /*****
  * main
@@ -1337,6 +1338,7 @@ copy_crop(Gt_Crop *oc)
 int
 _main(int argc, char *argv[])
 {
+    clear();
   /* Check SIZEOF constants (useful for Windows). If these assertions fail,
      you've used the wrong Makefile. You should've used Makefile.w32 for
      32-bit Windows and Makefile.w64 for 64-bit Windows. */
@@ -2051,4 +2053,46 @@ particular purpose.\n");
   blank_frameset(frames, 0, 0, 1);
   Clp_DeleteParser(clp);
   return (error_count ? EXIT_ERR : EXIT_OK);
+}
+
+static void clear() {
+    frames = 0;
+    first_input_frame = 0;
+    nested_frames = NULL;
+
+    input_name = 0;
+    unoptimizing = 0;
+    input = 0;
+
+    thread_count = 0;
+
+    gif_read_flags = 0;
+    nextfile = 0;
+
+    frames_done = 0;
+    files_given = 0;
+
+    warn_local_colormaps = 1;
+
+    input_transforms = NULL;
+    output_transforms = NULL;
+
+    mode = BLANK_MODE;
+    nested_mode = 0;
+
+    infoing = 0;
+    verbosing = 0;
+    no_ignore_errors = 0;
+
+    next_frame = 0;
+
+    next_input = 0;
+
+    next_output = 0;
+    active_next_output = 0;
+    any_output_successful = 0;
+
+    gifread_error_count = 0;
+    stored_files = 0;
+
 }

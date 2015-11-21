@@ -36,7 +36,6 @@ JNIEXPORT jstring JNICALL Java_kai_com_weixingif_gifsicle_GifSicleRequest_getGif
 		  LogError("Fail in compressing gif, size = %d", size);
 	  }
 
-
 	auto tp = getGifInfo(_path, new_file);
 	int images = -1;
 	int height = -1;
