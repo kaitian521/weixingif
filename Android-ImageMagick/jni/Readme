@@ -1,0 +1,36 @@
+这个项目主要是为了移植 ImageMagick到Android路径下，想做两件事：
+  1. 把gif图分解成帧
+  2. gif图加字
+  
+目前代码可以完成这个任务：
+
+    private void testImageMagick() {
+        String [] commands = new String[17];
+        // 分解gif成帧
+//        commands[0] = "convert";
+//        commands[1] = "-coalesce"; // 这个参数很重要
+//        commands[2] = m_url;
+//        commands[3] = "/storage/emulated/0/zuiyou/image%02d.png";
+
+ // gif加字
+        commands[0] = "convert";
+        commands[1] = m_url;
+        commands[2] = "-coalesce";
+        commands[3] = "-gravity";
+        commands[4] = "South";
+        commands[5] = "-background";
+        commands[6] = "white";
+        commands[7] = "-splice";
+        commands[8] = "0x18";
+        commands[9] = "-annotate";
+        commands[10] = "0";
+        commands[11] = "我草 啊啊啊 hehe ";
+        commands[12] = "-font";
+        commands[13] = "/storage/emulated/0/zuiyou/msyh.ttf"; // 指定字体库位置 非常重要， 我用的是微软雅黑
+        commands[14] = "-layers";
+        commands[15] = "Optimize";
+        commands[16] = "/storage/emulated/0/zuiyou/shaokai.gif";
+        new ImageMagickUtil().convert(commands);
+    }
+    
+但是手机性能差劲， 我觉得这种人物不要交给手机了。 在服务器上做最好了
