@@ -1,0 +1,4 @@
+这个项目是把 Gifsicle (https://github.com/pornel/giflossy) 项目 移植到Android下
+直接调用exrcute就行， 函数的参数是命令行的参数， 给力不？
+
+This project is to port gifsicle to Android
