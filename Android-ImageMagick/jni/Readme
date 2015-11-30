@@ -26,11 +26,11 @@
         commands[10] = "0";
         commands[11] = "我草 啊啊啊 hehe ";
         commands[12] = "-font";
-        commands[13] = "/storage/emulated/0/zuiyou/msyh.ttf"; // 指定字体库位置 非常重要， 我用的是微软雅黑
+        commands[13] = "/storage/emulated/0/doutu/msyh.ttf"; // 指定字体库位置 非常重要， 我用的是微软雅黑
         commands[14] = "-layers";
         commands[15] = "Optimize";
-        commands[16] = "/storage/emulated/0/zuiyou/shaokai.gif";
+        commands[16] = "/storage/emulated/0/doutu/shaokai.gif";
         new ImageMagickUtil().convert(commands);
     }
     
-但是手机性能差劲， 我觉得这种人物不要交给手机了。 在服务器上做最好了
+但是手机性能差劲， 很多时候崩溃 我觉得这种任务不要交给手机了。 在服务器上做最好了
